@@ -374,6 +374,14 @@ export function deleteProvider(id: string): void {
   }
 }
 
+/** Update only the `model` column of a provider (used by `/model` command). */
+export function updateProviderModel(id: string, model: string): void {
+  const d = getDb();
+  d.prepare(
+    `UPDATE providers SET model = ?, updated_at = ? WHERE id = ?`
+  ).run(model, Date.now(), id);
+}
+
 export function setActiveProvider(id: string): void {
   setConfigValue('activeProviderId', id);
 }

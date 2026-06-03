@@ -16,6 +16,7 @@ import {
 
 export type AgentEvent =
   | { type: 'session'; sessionId: string }
+  | { type: 'session_title'; sessionId: string; title: string }
   | { type: 'message'; message: ChatMessage }
   | { type: 'message_delta'; id: string; delta: string }
   | { type: 'message_done'; id: string }
@@ -150,7 +151,14 @@ export class Agent extends EventEmitter {
     // Auto-title from first user message
     if (this.messages.filter((m) => m.role === 'user').length === 1) {
       const title = userInput.slice(0, 60).replace(/\s+/g, ' ').trim();
-      if (title) renameSession(this.sessionId, title);
+      if (title) {
+        renameSession(this.sessionId, title);
+        this.emit('event', {
+          type: 'session_title',
+          sessionId: this.sessionId,
+          title,
+        } as AgentEvent);
+      }
     }
 
     if (!this.openai) {

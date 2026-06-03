@@ -12,6 +12,8 @@ export interface HeaderProps {
   mcpServers?: number;
   budgetActive?: boolean;
   budgetPercent?: number;
+  /** Number of messages in the current session. Shown as a small badge. */
+  messageCount?: number;
 }
 
 export function Header({
@@ -24,6 +26,7 @@ export function Header({
   mcpServers,
   budgetActive,
   budgetPercent,
+  messageCount,
 }: HeaderProps): JSX.Element {
   const colors = gradient(2);
 
@@ -63,6 +66,12 @@ export function Header({
       {/* Middle: session + badges */}
       <Box flexDirection="row" marginX={2}>
         <Text color="gray">{sessionTitle}</Text>
+        {messageCount !== undefined && messageCount > 0 ? (
+          <>
+            <Text color="gray"> · </Text>
+            <Text color="gray">💬 {messageCount}</Text>
+          </>
+        ) : null}
         {toolCount !== undefined ? (
           <>
             <Text color="gray"> · </Text>

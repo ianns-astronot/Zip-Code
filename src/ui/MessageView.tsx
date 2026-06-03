@@ -9,10 +9,18 @@ import { StreamingCursor } from './StreamingIndicator.js';
 export interface MessageViewProps {
   messages: ChatMessage[];
   maxHeight?: number;
+  /**
+   * Number of messages to skip from the bottom (the "live" tail). 0 = the
+   * most recent messages are visible (follow mode). Positive values scroll
+   * the view back into history. The parent owns this state in response to
+   * PgUp/PgDn/End keys.
+   */
+  scrollOffset?: number;
 }
 
 export function MessageView({
   messages,
+  scrollOffset = 0,
 }: MessageViewProps): JSX.Element {
   // Skip empty messages and system messages (handled elsewhere)
   const visible = messages.filter((m) => {
@@ -22,11 +30,38 @@ export function MessageView({
     return true;
   });
 
+  // Apply scrollback: drop the last `scrollOffset` messages. Clamp so the
+  // user can't scroll into the void.
+  const safeOffset = Math.max(0, Math.min(scrollOffset, Math.max(0, visible.length - 1)));
+  const window = visible.slice(0, Math.max(1, visible.length - safeOffset));
+  const hiddenAbove = safeOffset;
+
   return (
     <Box flexDirection="column" flexGrow={1} paddingX={1}>
       {visible.length === 0 ? <EmptyState /> : null}
-      {visible.map((m, idx) => (
-        <MessageRow key={m.id} message={m} isLast={idx === visible.length - 1} />
+      {hiddenAbove > 0 ? (
+        <Box marginY={1}>
+          <Text color="yellow" dimColor>
+            ⬆ {hiddenAbove} earlier message{hiddenAbove === 1 ? '' : 's'} hidden · press{' '}
+          </Text>
+          <Text color="yellow" bold>
+            End
+          </Text>
+          <Text color="yellow" dimColor>
+            {' '}
+            or{' '}
+          </Text>
+          <Text color="yellow" bold>
+            PgDn
+          </Text>
+          <Text color="yellow" dimColor>
+            {' '}
+            to follow
+          </Text>
+        </Box>
+      ) : null}
+      {window.map((m, idx) => (
+        <MessageRow key={m.id} message={m} isLast={idx === window.length - 1} />
       ))}
     </Box>
   );
